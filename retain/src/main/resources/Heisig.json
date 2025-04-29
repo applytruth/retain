@@ -5095,12 +5095,12 @@
   "kanji" : "養",
   "story" : ""
 }, {
-  "number" : 0,
-  "chapter" : 0,
-  "strokes" : 1,
+  "number" : 4,
+  "chapter" : 1,
+  "strokes" : 5,
   "key" : "four",
   "kanji" : "四",
-  "story" : ""
+  "story" : "I don't remember"
 }, {
   "number" : 0,
   "chapter" : 0,
@@ -8401,10 +8401,10 @@
 }, {
   "number" : 1,
   "chapter" : 1,
-  "strokes" : 5,
+  "strokes" : 1,
   "key" : "one",
   "kanji" : "一",
-  "story" : "The story for one"
+  "story" : "A single horizontal line"
 }, {
   "number" : 0,
   "chapter" : 0,
@@ -12817,11 +12817,11 @@
   "story" : ""
 }, {
   "number" : 3,
-  "chapter" : 0,
-  "strokes" : 1,
+  "chapter" : 1,
+  "strokes" : 3,
   "key" : "three",
   "kanji" : "三",
-  "story" : ""
+  "story" : "Three Horizontal lines."
 }, {
   "number" : 0,
   "chapter" : 0,
@@ -13286,11 +13286,11 @@
   "story" : ""
 }, {
   "number" : 2,
-  "chapter" : 0,
-  "strokes" : 1,
+  "chapter" : 1,
+  "strokes" : 2,
   "key" : "two",
   "kanji" : "二",
-  "story" : ""
+  "story" : "Two horizontal lines"
 }, {
   "number" : 0,
   "chapter" : 0,

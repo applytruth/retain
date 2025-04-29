@@ -1,115 +1,160 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchKanji, updateKanji } from "../services/kanjiService";
 import { KanjiEntry } from "../types/KanjiEntry";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const KanjiList = () => {
+export function KanjiList() {
   const [kanjiList, setKanjiList] = useState<KanjiEntry[]>([]);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [editingKanji, setEditingKanji] = useState<KanjiEntry | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
-    const loadKanji = async () => {
-      try {
-        const data = await fetchKanji();
-        setKanjiList(data);
-      } catch (error) {
-        console.error("Error loading kanji:", error);
-      }
-    };
+    async function loadKanji() {
+      const kanji = await fetchKanji();
+      setKanjiList(kanji);
+    }
     loadKanji();
   }, []);
 
-  const handleInputChange = (index: number, field: keyof KanjiEntry, value: string | number) => {
-    const updatedList = [...kanjiList];
-    updatedList[index] = { ...updatedList[index], [field]: value };
-    setKanjiList(updatedList);
+  const handleEditClick = (kanji: KanjiEntry) => {
+    setEditingKanji({ ...kanji });
   };
 
-  const handleSave = async (kanji: KanjiEntry) => {
-    try {
-      await updateKanji(kanji);
-      toast.success("Kanji updated successfully");
-    } catch (error) {
-      console.error("Error saving kanji:", error);
-      toast.error("Failed to save kanji");
+  const handleSaveClick = async () => {
+    if (editingKanji) {
+      try {
+        await updateKanji(editingKanji);
+        toast.success("Kanji updated successfully!");
+        setEditingKanji(null);
+        const updatedKanji = await fetchKanji();
+        setKanjiList(updatedKanji);
+      } catch (error) {
+        toast.error("Error updating kanji. Please try again.");
+      }
     }
   };
 
-  const filteredKanjiList = kanjiList.filter((kanji) =>
-    kanji.key.toLowerCase().includes(searchKeyword.toLowerCase())
-  );
+  const handleCancelClick = () => {
+    setEditingKanji(null);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm("");
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (editingKanji) {
+      const { name, value } = e.target;
+      setEditingKanji({ ...editingKanji, [name]: name === "number" || name === "chapter" || name === "strokes" ? Number(value) : value });
+    }
+  };
+
+  const filteredKanji = kanjiList.filter(entry => {
+    if (!searchTerm.trim()) {
+      return true;
+    }
+    const search = searchTerm.trim().toLowerCase();
+    if (!isNaN(Number(search))) {
+      return entry.chapter === Number(search);
+    } else {
+      return entry.key.toLowerCase() === search;
+    }
+  });
 
   return (
-    <div className="p-4">
-      <input
-        type="text"
-        placeholder="Search by keyword"
-        value={searchKeyword}
-        onChange={(e) => setSearchKeyword(e.target.value)}
-        className="border rounded px-2 py-1 mb-4 w-full"
-      />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredKanjiList.map((kanji, index) => (
-          <div key={kanji.key} className="border rounded p-4 shadow">
-            <h2 className="text-2xl mb-2">{kanji.kanji}</h2>
-            <div className="space-y-2">
-              <div>
-                <label className="block text-sm">Keyword</label>
-                <input
-                  type="text"
-                  value={kanji.key}
-                  disabled
-                  className="border rounded px-2 py-1 w-full bg-gray-100"
-                />
+    <div className="p-4 space-y-6">
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Search by keyword or chapter..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border rounded p-2 w-full"
+        />
+        <button
+          onClick={handleClearSearch}
+          className="bg-gray-400 text-white px-4 py-2 rounded"
+        >
+          Clear
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {filteredKanji.map((kanji) => (
+          <div key={kanji.key} className="p-4 border rounded shadow-md bg-white">
+            {editingKanji?.key === kanji.key ? (
+              <div className="space-y-2">
+                <div>
+                  <strong>Number:</strong>
+                  <input
+                    name="number"
+                    value={editingKanji.number}
+                    onChange={handleChange}
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
+                <div>
+                  <strong>Chapter:</strong>
+                  <input
+                    name="chapter"
+                    value={editingKanji.chapter}
+                    onChange={handleChange}
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
+                <div>
+                  <strong>Strokes:</strong>
+                  <input
+                    name="strokes"
+                    value={editingKanji.strokes}
+                    onChange={handleChange}
+                    className="border rounded p-1 w-full"
+                  />
+                </div>
+                <div>
+                  <strong>Story:</strong>
+                  <textarea
+                    name="story"
+                    value={editingKanji.story}
+                    onChange={handleChange}
+                    className="border rounded p-2 w-full"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveClick}
+                    className="bg-green-500 text-white px-4 py-2 rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelClick}
+                    className="bg-gray-300 text-black px-4 py-2 rounded"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm">Number</label>
-                <input
-                  type="number"
-                  value={kanji.number}
-                  onChange={(e) => handleInputChange(index, "number", Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-full"
-                />
+            ) : (
+              <div className="space-y-2">
+                <p><strong>Keyword:</strong> {kanji.key}</p>
+                <p><strong>Kanji:</strong> {kanji.kanji}</p>
+                <p><strong>Number:</strong> {kanji.number}</p>
+                <p><strong>Chapter:</strong> {kanji.chapter}</p>
+                <p><strong>Strokes:</strong> {kanji.strokes}</p>
+                <p><strong>Story:</strong> {kanji.story}</p>
+                <button
+                  onClick={() => handleEditClick(kanji)}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  Edit
+                </button>
               </div>
-              <div>
-                <label className="block text-sm">Chapter</label>
-                <input
-                  type="number"
-                  value={kanji.chapter}
-                  onChange={(e) => handleInputChange(index, "chapter", Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm">Strokes</label>
-                <input
-                  type="number"
-                  value={kanji.strokes}
-                  onChange={(e) => handleInputChange(index, "strokes", Number(e.target.value))}
-                  className="border rounded px-2 py-1 w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-sm">Story</label>
-                <textarea
-                  value={kanji.story}
-                  onChange={(e) => handleInputChange(index, "story", e.target.value)}
-                  className="border rounded px-2 py-1 w-full"
-                  rows={3}
-                />
-              </div>
-              <button
-                onClick={() => handleSave(kanji)}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mt-2"
-              >
-                Save Changes
-              </button>
-            </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-};
-
-export default KanjiList;
+}
